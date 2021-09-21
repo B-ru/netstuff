@@ -1,126 +1,114 @@
-/*@author: Boris Ischenko
- * 23.09.2019
+/* проверено: компилируется и работает в win7-cygwin64 и astralinux open
+ * правки от 18.09.2021
+ * DONE: запустить в archlinux
+ * DONE: вынести логику в функции
+ * правки от 20.09.2021
+ * DONE: добавить проверку на maskexception
+ * правки от 21.09.2021
+ * DONE: добавить функцию вывода всех адресов сети
+ * TODO: refactor parsenetstring() function
  */
 
-
-
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>						
 #include <math.h>
 #include <string.h>
 #include <stddef.h>
+#include <regex.h>
 
-struct ip{
+#define TRUE  1
+#define FALSE 0
+#define NET_PATTERN "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}/[0-9]{1,2}$"
+//////////////////////////////////////////////////////////////////////////////////////////
+typedef struct {
 	unsigned char octet1;
 	unsigned char octet2;
 	unsigned char octet3;
 	unsigned char octet4;
-};
-
+}fouroctets;
+//////////////////////////////////////////////////////////////////////////////////////////
+typedef struct{
+	fouroctets address;
+	fouroctets mask;
+}ipv4net;
+//////////////////////////////////////////////////////////////////////////////////////////
+//prototypes										//
+//////////////////////////////////////////////////////////////////////////////////////////
+ipv4net	parsenetstring		(char *string);
+int	netstringcheck 		(char *string);
+int	maskexceptioncheck	(ipv4net  net);
+void	listaddresses		(ipv4net  net);
+//////////////////////////////////////////////////////////////////////////////////////////
+// main											//
+//////////////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char* argv[]){
-	
-	unsigned char *adr; 
-	unsigned char *pref;
-	unsigned char *segment;
-	unsigned char *one = strdup(argv[1]);
-	unsigned char count = 0;
-	if (argc > 1) {
-		while ((segment = strsep(&one,"/"))!=NULL)
-		{
-			count++;
-			switch (count){
-				case 1:
-					adr = segment;
-					break;
-				case 2:
-					pref = segment;
-					break;
-				default:
-					break;
-			}
+	if( netstringcheck( argv[1] ) ){
+		ipv4net net = parsenetstring( argv[1] );
+		if( maskexceptioncheck( net ) ) {
+			listaddresses( net );
 		}
-		count = 0;
-		unsigned char* octet1;
-		unsigned char* octet2;
-		unsigned char* octet3;
-		unsigned char* octet4;
-		unsigned char* dup = strdup(adr);
-		struct ip IP;
-		while ((segment = strsep(&dup,"."))!=NULL)
-		{
-			count++;
-			switch (count){
-				case 1:
-					IP.octet1 = (unsigned char)atoi(segment);
-					break;
-				case 2:
-					IP.octet2 = (unsigned char)atoi(segment);
-					break;
-				case 3:
-					IP.octet3 = (unsigned char)atoi(segment);
-					break;
-				case 4:
-					IP.octet4 = (unsigned char)atoi(segment);
-					break;
-				default:
-					break;
-			}
-		}
-	//printf(">%d.%d.%d.%d\n",IP.octet1,IP.octet2,IP.octet3,IP.octet4);
-	unsigned char arr[5] = {IP.octet1,IP.octet2,IP.octet3,IP.octet4,(unsigned char)atoi(pref)};
-	unsigned char R_mask[4] = {0,0,0,0};		// обратная маска в виде кол-ва бит
-	unsigned char R_mask_decima[4] = {0,0,0,0};	// обратная маска в десятичном виде
-	unsigned char R_mask_probe[4]  = {0,0,0,0};	// обратная маска для разрешения списка ip адресов
-	unsigned char Adr[4] = {0,0,0,0};			// условный адрес к опросу
-	unsigned char RM_bitcounter = 32 - arr[4];	// счетчик битов к распределению по октетам обратной маски
-	
-	if (RM_bitcounter < 0) {
-		return 2;
+		else printf("Error! Illegal network address! Network and Hosts ranges intersects!\n");
+		
 	} else {
-		for (int k = 3;k>=0;k--){
-			if(RM_bitcounter>=8) {
-				R_mask[k] = 8;
-				RM_bitcounter = RM_bitcounter - 8;
-				R_mask_decima[k] = (int)pow(2,R_mask[k])-1;
-				Adr[k] = arr[k]+R_mask_decima[k];
-			} else {
-				R_mask[k] = RM_bitcounter;
-				RM_bitcounter = 0;
-				R_mask_decima[k] = (int)pow(2,R_mask[k])-1;
-			}			
-		}		
-		R_mask_probe[0] = R_mask_decima[0];
-		R_mask_probe[1] = R_mask_decima[1];
-		R_mask_probe[2] = R_mask_decima[2];
-		R_mask_probe[3] = R_mask_decima[3];
-		while (R_mask_probe[3] >= 0){
-			while (R_mask_probe[2] >= 0){
-				while (R_mask_probe[1] >= 0){
-					while (R_mask_probe[0] >= 0){
-						for (int k = 3;k>=0;k--){
-							Adr[k] = arr[k]+R_mask_probe[k];
-						}
-						printf("%d.%d.%d.%d\n",Adr[0],Adr[1],Adr[2],Adr[3]);
-						if(R_mask_probe[0] == 0) break;
-						R_mask_probe[0]--;
-					}
-					R_mask_probe[0] = R_mask_decima[0];
-					if(R_mask_probe[1] == 0) break;
-					R_mask_probe[1]--;
-				}
-				R_mask_probe[1] = R_mask_decima[1];
-				if(R_mask_probe[2] == 0) break;
-				R_mask_probe[2]--;
-			}
-			R_mask_probe[2] = R_mask_decima[2];
-			if(R_mask_probe[3] == 0) break;
-			R_mask_probe[3]--;
-		}
-		return 0;		
+		printf("Error! Check network address and try again!\n");
 	}
-	} else {
-		return 1;
-	}
-	
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////
+//functions										//
+//////////////////////////////////////////////////////////////////////////////////////////
+ipv4net parsenetstring(char *string){
+	ipv4net parsingnet;
+	char *cursor = &parsingnet.address.octet1;
+	unsigned char count = 0;
+	char *netpart;
+	int currentoctet;
+	while ( (netpart = strsep(&string,"/")) != NULL )	
+	{
+		switch (++count){
+			case 1:							// address part
+				for(	char* addrpart;
+					(addrpart = strsep(&netpart,".")) != NULL;
+					cursor++ ) 
+				{
+					currentoctet = atoi(addrpart);
+					memcpy(cursor,(char*)&currentoctet,1);	// int -> char
+				}
+				break;
+			case 2:							// mask part
+				for(int maskbitcount = atoi(netpart);maskbitcount>0;maskbitcount-=8,cursor++){
+					currentoctet = pow ( 2, (maskbitcount < 8 ? maskbitcount : 8)) - 1;
+					for (int lshiftamount = 8 - maskbitcount;lshiftamount > 0; lshiftamount--) currentoctet *= 2;
+					memcpy( cursor, (char *)&currentoctet, 1);
+				}					
+				break;
+			default:
+				break;
+		}
+	}
+	return parsingnet;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+int netstringcheck(char *string){
+	regex_t checkstringrx;
+	regmatch_t matches[1];
+	regcomp(&checkstringrx,NET_PATTERN,REG_EXTENDED);
+	if(regexec(&checkstringrx,string,1,matches,0) == 0) return TRUE;
+	else return FALSE;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+int maskexceptioncheck(ipv4net net){
+	for ( unsigned char *netcursor = &net.address.octet1, *maskcursor = netcursor + 4, i = 0; i<4; netcursor++, maskcursor++, i++) {
+		if( ( (*netcursor) & ( ~ ( *maskcursor ) ) ) != 0 ) return FALSE;
+	}
+	return TRUE;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+void listaddresses( ipv4net net ){
+	for( int octet1 = net.address.octet1, counter = (unsigned char)(~net.mask.octet1); counter >= 0; octet1++, counter--)
+		for( int octet2 = net.address.octet2, counter = (unsigned char)(~net.mask.octet2); counter >= 0; octet2++, counter--)
+			for( int octet3 = net.address.octet3, counter = (unsigned char)(~net.mask.octet3); counter >= 0; octet3++, counter--)
+				for( int octet4 = net.address.octet4, counter = (unsigned char)(~net.mask.octet4); counter >= 0; octet4++, counter-- ){
+					printf("%u.%u.%u.%u\n",octet1,octet2,octet3,octet4);
+	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////
