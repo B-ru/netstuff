@@ -61,7 +61,7 @@ int refinenetstring( char *netstring, unsigned char *netpointer ){
 			int intbuf = atoi( netstring + matches[i].rm_so );
 			switch (i){
 				case OCT1: case OCT2: case OCT3: case OCT4: memmove( netpointer, (char *) &intbuf, 1 ); break;
-				case MASK: resolvemaskoctets( &intbuf, netpointer ); break;
+				case MASK: if( intbuf > 32 ) return FALSE; else resolvemaskoctets( &intbuf, netpointer ); break;
 			}
 		}
 		return TRUE;
