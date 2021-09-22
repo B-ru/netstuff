@@ -1,23 +1,11 @@
-/* проверено: компилируется и работает в win7-cygwin64 и astralinux open
- * правки от 18.09.2021
- * DONE: запустить в archlinux
- * DONE: вынести логику в функции
- * правки от 20.09.2021
- * DONE: добавить проверку на maskexception
- * правки от 21.09.2021
- * DONE: добавить функцию вывода всех адресов сети
- * DONE: объеденины функции проверки и разбора строки
- */
-
 #include <stdio.h>
 #include <stdlib.h>						
 #include <math.h>
 #include <string.h>
 #include <regex.h>
-
-#define TRUE  1
-#define FALSE 0
-#define MASK 5
+#define TRUE	1
+#define FALSE	0
+#define MASK	5
 #define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$"
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
@@ -25,11 +13,10 @@ typedef struct {
 	unsigned char octet2;
 	unsigned char octet3;
 	unsigned char octet4;
-}fouroctets;
-//////////////////////////////////////////////////////////////////////////////////////////
-typedef struct{
-	fouroctets address;
-	fouroctets mask;
+	unsigned char maskoctet1;
+	unsigned char maskoctet2;
+	unsigned char maskoctet3;
+	unsigned char maskoctet4;
 }ipv4net;
 //////////////////////////////////////////////////////////////////////////////////////////
 // prototypes										//
@@ -43,17 +30,17 @@ void	printnet		( unsigned char *net );		//debug purposes only
 //////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char* argv[] ){
 	ipv4net net;
-	unsigned char *netptr = &net.address.octet1;
+	unsigned char *netptr = &net.octet1;
 	if( netstringcheckrefine( argv[1], netptr ) ){
 		if( maskexceptioncheck( netptr ) ){
 			listaddresses( net );
 			return 0;
 		} else {
-			printf("Error! Illegal network address! Network and Hosts ranges intersects!\n");
+			fprintf(stderr,"Error! Illegal network address! Network and Hosts ranges intersects!\n");
 			return 2;
 		}
 	} else {
-		printf("Error! Check network address and try again!\n");
+		fprintf(stderr,"Error! Check network address and try again!\n");
 		return 1;
 	}
 }
@@ -65,7 +52,6 @@ int netstringcheckrefine( char *string, unsigned char *net ){
 	regmatch_t matches[6];
 	regcomp( &checkstringrx, NET_PATTERN, REG_EXTENDED );
 	if( regexec( &checkstringrx, string, 6, matches, 0 ) == 0 ) {
-		//once we've got regex check, lets refine network string into ipv4net structure
 		for( int i = 1; i < 6; i++, net++ ){
 			unsigned char intbuf = atoi( string + matches[i].rm_so );
 			if( i == MASK ){
@@ -73,7 +59,7 @@ int netstringcheckrefine( char *string, unsigned char *net ){
 					int currentoctet = pow ( 2, (maskbitcount < 8 ? maskbitcount : 8) ) - 1;
 					if( maskbitcount < 8 ) currentoctet <<= ( 8 - maskbitcount );
 					memmove( net, (char *)&currentoctet, 1 );
-				}					
+				}
 			}
 			else memmove( net, (char*) &intbuf, 1 );
 		}
@@ -90,10 +76,10 @@ int maskexceptioncheck( unsigned char* net ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void listaddresses( ipv4net net ){
-	for( int octet1 = net.address.octet1, counter = (unsigned char)(~net.mask.octet1); counter >= 0; octet1++, counter-- )
-		for( int octet2 = net.address.octet2, counter = (unsigned char)(~net.mask.octet2); counter >= 0; octet2++, counter-- )
-			for( int octet3 = net.address.octet3, counter = (unsigned char)(~net.mask.octet3); counter >= 0; octet3++, counter-- )
-				for( int octet4 = net.address.octet4, counter = (unsigned char)(~net.mask.octet4); counter >= 0; octet4++, counter-- ){
+	for( int octet1 = net.octet1, counter = (unsigned char)(~net.maskoctet1); counter >= 0; octet1++, counter-- )
+		for( int octet2 = net.octet2, counter = (unsigned char)(~net.maskoctet2); counter >= 0; octet2++, counter-- )
+			for( int octet3 = net.octet3, counter = (unsigned char)(~net.maskoctet3); counter >= 0; octet3++, counter-- )
+				for( int octet4 = net.octet4, counter = (unsigned char)(~net.maskoctet4); counter >= 0; octet4++, counter-- ){
 					printf("%u.%u.%u.%u\n",octet1,octet2,octet3,octet4);
 	}
 }
