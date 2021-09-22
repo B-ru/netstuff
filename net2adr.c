@@ -6,7 +6,7 @@
  * DONE: добавить проверку на maskexception
  * правки от 21.09.2021
  * DONE: добавить функцию вывода всех адресов сети
- * TODO: refactor parsenetstring() function
+ * DONE: объеденины функции проверки и разбора строки
  */
 
 #include <stdio.h>
@@ -18,7 +18,8 @@
 
 #define TRUE  1
 #define FALSE 0
-#define NET_PATTERN "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}/[0-9]{1,2}$"
+#define MASK 5
+#define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$"
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
 	unsigned char octet1;
@@ -34,70 +35,49 @@ typedef struct{
 //////////////////////////////////////////////////////////////////////////////////////////
 //prototypes										//
 //////////////////////////////////////////////////////////////////////////////////////////
-ipv4net	parsenetstring		(char *string);
-int	netstringcheck 		(char *string);
-int	maskexceptioncheck	(ipv4net  net);
+int	netstringcheckrefine	(char *string, unsigned char *net);
+int	maskexceptioncheck	(unsigned char* net);
 void	listaddresses		(ipv4net  net);
+void	printnet		(unsigned char *net);	//debug purposes only
 //////////////////////////////////////////////////////////////////////////////////////////
 // main											//
 //////////////////////////////////////////////////////////////////////////////////////////
 int main (int argc, char* argv[]){
-	if( netstringcheck( argv[1] ) ){
-		ipv4net net = parsenetstring( argv[1] );
-		if( maskexceptioncheck( net ) ) {
+	ipv4net net;
+	unsigned char *netptr = &net.address.octet1;
+	if( netstringcheckrefine( argv[1], netptr ) ){
+		if( maskexceptioncheck( netptr ) )
 			listaddresses( net );
-		}
 		else printf("Error! Illegal network address! Network and Hosts ranges intersects!\n");
-		
-	} else {
-		printf("Error! Check network address and try again!\n");
-	}
+	} else printf("Error! Check network address and try again!\n");
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 //functions										//
 //////////////////////////////////////////////////////////////////////////////////////////
-ipv4net parsenetstring(char *string){
-	ipv4net parsingnet;
-	char *cursor = &parsingnet.address.octet1;
-	unsigned char count = 0;
-	char *netpart;
-	int currentoctet;
-	while ( (netpart = strsep(&string,"/")) != NULL )	
-	{
-		switch (++count){
-			case 1:							// address part
-				for(	char* addrpart;
-					(addrpart = strsep(&netpart,".")) != NULL;
-					cursor++ ) 
-				{
-					currentoctet = atoi(addrpart);
-					memcpy(cursor,(char*)&currentoctet,1);	// int -> char
-				}
-				break;
-			case 2:							// mask part
-				for(int maskbitcount = atoi(netpart);maskbitcount>0;maskbitcount-=8,cursor++){
-					currentoctet = pow ( 2, (maskbitcount < 8 ? maskbitcount : 8)) - 1;
-					for (int lshiftamount = 8 - maskbitcount;lshiftamount > 0; lshiftamount--) currentoctet *= 2;
-					memcpy( cursor, (char *)&currentoctet, 1);
-				}					
-				break;
-			default:
-				break;
-		}
-	}
-	return parsingnet;
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-int netstringcheck(char *string){
+int netstringcheckrefine( char *string, unsigned char *net ){
 	regex_t checkstringrx;
-	regmatch_t matches[1];
+	regmatch_t matches[6];
 	regcomp(&checkstringrx,NET_PATTERN,REG_EXTENDED);
-	if(regexec(&checkstringrx,string,1,matches,0) == 0) return TRUE;
+	if(regexec(&checkstringrx,string,6,matches,0) == 0) {
+		//once we've got regex check, lets refine network string into ipv4net structure
+		for( int i = 1; i < 6; i++,net++ ){
+			unsigned char intbuf = atoi(string+matches[i].rm_so);
+			if( i == MASK ){
+				for( int maskbitcount = intbuf; maskbitcount>0; maskbitcount-=8, net++ ){
+					int currentoctet = pow ( 2, (maskbitcount < 8 ? maskbitcount : 8)) - 1;
+					for ( int lshiftamount = 8 - maskbitcount; lshiftamount > 0; lshiftamount-- ) currentoctet *= 2;
+					memmove( net, (char *)&currentoctet, 1);
+				}					
+			}
+			else memmove( net, (char*) &intbuf, 1);
+		}
+		return TRUE;
+	}
 	else return FALSE;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-int maskexceptioncheck(ipv4net net){
-	for ( unsigned char *netcursor = &net.address.octet1, *maskcursor = netcursor + 4, i = 0; i<4; netcursor++, maskcursor++, i++) {
+int maskexceptioncheck(unsigned char* net){
+	for ( unsigned char *netcursor = net, *maskcursor = netcursor + 4, i = 0; i<4; netcursor++, maskcursor++, i++) {
 		if( ( (*netcursor) & ( ~ ( *maskcursor ) ) ) != 0 ) return FALSE;
 	}
 	return TRUE;
@@ -112,3 +92,8 @@ void listaddresses( ipv4net net ){
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
+void printnet(unsigned char *net){
+	printf("%u.%u.%u.%u\n%u.%u.%u.%u\n", *net, *(net+1), *(net+2), *(net+3), *(net+4), *(net+5), *(net+6), *(net+7));
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+
