@@ -41,11 +41,11 @@ int main ( int argc, char* argv[] ){
 			listaddresses( net );
 			return 0;
 		} else {
-			fprintf(stderr,"Error! Illegal network address! Network and Hosts ranges intersects!\n");
+			fprintf( stderr,"Error! Illegal network address! Network and Hosts ranges intersects!\n" );
 			return 2;
 		}
 	} else {
-		fprintf(stderr,"Error! Check network address and try again!\n");
+		fprintf( stderr,"Error! Check network address and try again!\n" );
 		return 1;
 	}
 }
@@ -88,11 +88,11 @@ void listaddresses( ipv4net net ){
 		for( int octet2 = net.octet2, counter = (unsigned char)(~net.maskoctet2); counter >= 0; octet2++, counter-- )
 			for( int octet3 = net.octet3, counter = (unsigned char)(~net.maskoctet3); counter >= 0; octet3++, counter-- )
 				for( int octet4 = net.octet4, counter = (unsigned char)(~net.maskoctet4); counter >= 0; octet4++, counter-- ){
-					printf("%u.%u.%u.%u\n",octet1,octet2,octet3,octet4);
+					printf( "%u.%u.%u.%u\n", octet1, octet2, octet3, octet4 );
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void printnet( unsigned char *netpointer ){
-	for( int i = 0; i < 8; i++, netpointer++) printf("%u%s", *netpointer,(i%4==3?"\n":"."));
+	for( int i = 0; i < 8; i++, netpointer++ ) printf( "%u%s", *netpointer, ( i % 4 == 3 ? "\n" : "." ) );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
