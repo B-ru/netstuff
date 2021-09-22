@@ -5,12 +5,9 @@
 #include <regex.h>
 #define TRUE	1
 #define FALSE	0
-#define OCT1	1
-#define OCT2	2
-#define OCT3	3
-#define OCT4	4
-#define MASK	5
 #define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$"
+#define CODE1MESSAGE "Error! Check network address!\n"
+#define CODE2MESSAGE "Error! Illegal network address! Network and Hosts ranges intersects!\n" 
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
 	unsigned char octet1;
@@ -26,10 +23,11 @@ typedef struct {
 // prototypes										//
 //////////////////////////////////////////////////////////////////////////////////////////
 int	refinenetstring		( char *netstring, unsigned char *netpointer );
+void	refinemaskoctets	( int *mask, unsigned char *maskpointer );
 int	maskexceptioncheck	( unsigned char *netpointer );
 void	listaddresses		( ipv4net  net );
-void	resolvemaskoctets	( int *mask, unsigned char *maskpointer );
-void	printnet		( unsigned char *netpointer );		//debug purposes only
+void	errexit			( const int exitcode, const char* message );
+void	printnet		( unsigned char *netpointer );	//debug purposes only
 //////////////////////////////////////////////////////////////////////////////////////////
 // main											//
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -39,15 +37,9 @@ int main ( int argc, char* argv[] ){
 	if( refinenetstring( argv[1], netptr ) ){
 		if( maskexceptioncheck( netptr ) ){
 			listaddresses( net );
-			return 0;
-		} else {
-			fprintf( stderr,"Error! Illegal network address! Network and Hosts ranges intersects!\n" );
-			return 2;
-		}
-	} else {
-		fprintf( stderr,"Error! Check network address and try again!\n" );
-		return 1;
-	}
+			exit(0);
+		} else errexit( 2, CODE2MESSAGE );
+	} else errexit( 1, CODE1MESSAGE );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 // functions										//
@@ -59,16 +51,14 @@ int refinenetstring( char *netstring, unsigned char *netpointer ){
 	if( regexec( &checkstringrx, netstring, 6, matches, 0 ) == 0 ) {
 		for( int i = 1; i < 6; i++, netpointer++ ){
 			int intbuf = atoi( netstring + matches[i].rm_so );
-			switch (i){
-				case OCT1: case OCT2: case OCT3: case OCT4: memmove( netpointer, (char *) &intbuf, 1 ); break;
-				case MASK: if( intbuf > 32 ) return FALSE; else resolvemaskoctets( &intbuf, netpointer ); break;
-			}
+			if(  i % 5  ) memmove( netpointer, (char *) &intbuf, 1 );
+			else if( intbuf > 32 ) return FALSE; else refinemaskoctets( &intbuf, netpointer );
 		}
 		return TRUE;
 	} else return FALSE;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-void resolvemaskoctets( int *mask, unsigned char *maskpointer ){
+void refinemaskoctets( int *mask, unsigned char *maskpointer ){
 	for( int maskbitcounter = *mask; maskbitcounter > 0; maskbitcounter -= 8, maskpointer++ ){
 		int currentoctet = pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8) ) - 1;
 		if( maskbitcounter < 8 ) currentoctet <<= ( 8 - maskbitcounter );
@@ -90,6 +80,11 @@ void listaddresses( ipv4net net ){
 				for( int octet4 = net.octet4, counter = (unsigned char)(~net.maskoctet4); counter >= 0; octet4++, counter-- ){
 					printf( "%u.%u.%u.%u\n", octet1, octet2, octet3, octet4 );
 	}
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+void errexit( const int exitcode, const char* message ){
+	fprintf(stderr,"%s", message);
+	exit(exitcode);
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void printnet( unsigned char *netpointer ){
