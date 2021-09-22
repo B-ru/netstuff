@@ -66,10 +66,10 @@ int netstringcheckrefine( char *string, unsigned char *net ){
 	regcomp( &checkstringrx, NET_PATTERN, REG_EXTENDED );
 	if( regexec( &checkstringrx, string, 6, matches, 0 ) == 0 ) {
 		//once we've got regex check, lets refine network string into ipv4net structure
-		for( int i = 1; i < 6; i++,net++ ){
+		for( int i = 1; i < 6; i++, net++ ){
 			unsigned char intbuf = atoi( string + matches[i].rm_so );
 			if( i == MASK ){
-				for( int maskbitcount = intbuf; maskbitcount>0; maskbitcount-=8, net++ ){
+				for( int maskbitcount = intbuf; maskbitcount > 0; maskbitcount -= 8, net++ ){
 					int currentoctet = pow ( 2, (maskbitcount < 8 ? maskbitcount : 8) ) - 1;
 					if( maskbitcount < 8 ) currentoctet <<= ( 8 - maskbitcount );
 					memmove( net, (char *)&currentoctet, 1 );
@@ -83,7 +83,7 @@ int netstringcheckrefine( char *string, unsigned char *net ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 int maskexceptioncheck( unsigned char* net ){
-	for ( unsigned char *netcursor = net, *maskcursor = netcursor + 4, i = 0; i<4; netcursor++, maskcursor++, i++ ) {
+	for ( unsigned char *netcursor = net, *maskcursor = netcursor + 4, i = 0; i < 4; netcursor++, maskcursor++, i++ ) {
 		if( ( (*netcursor) & ( ~ ( *maskcursor ) ) ) != 0 ) return FALSE;
 	}
 	return TRUE;
