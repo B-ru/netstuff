@@ -71,7 +71,7 @@ int netstringcheckrefine( char *string, unsigned char *net ){
 			if( i == MASK ){
 				for( int maskbitcount = intbuf; maskbitcount>0; maskbitcount-=8, net++ ){
 					int currentoctet = pow ( 2, (maskbitcount < 8 ? maskbitcount : 8) ) - 1;
-					for ( int lshiftamount = 8 - maskbitcount; lshiftamount > 0; lshiftamount-- ) currentoctet *= 2;
+					if( maskbitcount < 8 ) currentoctet <<= ( 8 - maskbitcount );
 					memmove( net, (char *)&currentoctet, 1 );
 				}					
 			}
