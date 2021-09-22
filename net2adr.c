@@ -93,6 +93,6 @@ void listaddresses( ipv4net net ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void printnet( unsigned char *netpointer ){
-	printf("%u.%u.%u.%u\n%u.%u.%u.%u\n", *netpointer, *(netpointer+1), *(netpointer+2), *(netpointer+3), *(netpointer+4), *(netpointer+5), *(netpointer+6), *(netpointer+7));
+	for( int i = 0; i < 8; i++, netpointer++) printf("%u%s", *netpointer,(i%4==3?"\n":"."));
 }
 //////////////////////////////////////////////////////////////////////////////////////////
