@@ -13,7 +13,6 @@
 #include <stdlib.h>						
 #include <math.h>
 #include <string.h>
-#include <stddef.h>
 #include <regex.h>
 
 #define TRUE  1
@@ -46,10 +45,17 @@ int main ( int argc, char* argv[] ){
 	ipv4net net;
 	unsigned char *netptr = &net.address.octet1;
 	if( netstringcheckrefine( argv[1], netptr ) ){
-		if( maskexceptioncheck( netptr ) )
+		if( maskexceptioncheck( netptr ) ){
 			listaddresses( net );
-		else printf("Error! Illegal network address! Network and Hosts ranges intersects!\n");
-	} else printf("Error! Check network address and try again!\n");
+			return 0;
+		} else {
+			printf("Error! Illegal network address! Network and Hosts ranges intersects!\n");
+			return 2;
+		}
+	} else {
+		printf("Error! Check network address and try again!\n");
+		return 1;
+	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 // functions										//
