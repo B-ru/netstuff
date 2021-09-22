@@ -7,7 +7,7 @@
 #define FALSE	0
 #define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$"
 #define CODE1MESSAGE "Error! Check network address!\n"
-#define CODE2MESSAGE "Error! Illegal network address! Network and Hosts ranges intersects!\n" 
+#define CODE2MESSAGE "Error! Illegal network address! Network address and Hosts range intersects!\n" 
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
 	unsigned char octet1;
@@ -25,9 +25,8 @@ typedef struct {
 int	refinenetstring		( char *netstring, unsigned char *netpointer );
 void	refinemaskoctets	( int *mask, unsigned char *maskpointer );
 int	maskexceptioncheck	( unsigned char *netpointer );
-void	listaddresses		( ipv4net  net );
+void	listaddresses		( ipv4net net );
 void	errexit			( const int exitcode, const char* message );
-void	printnet		( unsigned char *netpointer );	//debug purposes only
 //////////////////////////////////////////////////////////////////////////////////////////
 // main											//
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -85,9 +84,5 @@ void listaddresses( ipv4net net ){
 void errexit( const int exitcode, const char* message ){
 	fprintf(stderr,"%s", message);
 	exit(exitcode);
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-void printnet( unsigned char *netpointer ){
-	for( int i = 0; i < 8; i++, netpointer++ ) printf( "%u%s", *netpointer, ( i % 4 == 3 ? "\n" : "." ) );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
