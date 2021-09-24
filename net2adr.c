@@ -8,10 +8,10 @@
 #define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([1-9]{1}|([1-2][0-9])|([3][0-2]))$"
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
-	unsigned char octet[4];
-	unsigned char maskoctet[4];
+	unsigned char octet[ 4 ];
+	unsigned char maskoctet[ 4 ];
 }ipv4net;
-const char *message[2] = {"Network does not fit IPv4 netowrk pattern!","Network's IP address intersects with reverse mask!"};
+const char *message[ 2 ] = { "Network does not fit IPv4 netowrk pattern!", "Network's IP address intersects with reverse mask!" };
 //////////////////////////////////////////////////////////////////////////////////////////
 // prototypes										//
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -19,31 +19,30 @@ int	validatenetstring	( char *netstring, unsigned char *netpointer );
 void	extractnetoctets	( char *netstring, regmatch_t *matches, unsigned char *netpointer );
 void	extractmaskoctets	( char *netstring, regmatch_t *matches, unsigned char *maskpointer );
 int	maskexceptioncheck	( unsigned char *netpointer );
-void	listaddresses		( ipv4net net );
+void	listaddresses		( unsigned char *netpointer );
 void	errexit			( const int exitcode, const char *string );
 //////////////////////////////////////////////////////////////////////////////////////////
 // main											//
 //////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char* argv[] ){
-	ipv4net net;
-	unsigned char *netptr = &net.octet[0];
-	if( validatenetstring( argv[1], netptr ) ){
+	unsigned char *netptr = malloc(sizeof(ipv4net));
+	if( validatenetstring( argv[ 1 ], netptr ) ){
 		if( maskexceptioncheck( netptr ) ){
-			listaddresses( net );
-			exit(0);
-		} else errexit( 2, argv[1] );
-	} else errexit( 1, argv[1] );
+			listaddresses( netptr );
+			exit( 0 );
+		} else errexit( 2, argv[ 1 ] );
+	} else errexit( 1, argv[ 1 ] );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 // functions										//
 //////////////////////////////////////////////////////////////////////////////////////////
 int validatenetstring( char *netstring, unsigned char *netpointer ){
 	regex_t checkstringrx;
-	regmatch_t matches[6];
+	regmatch_t matches[ 6 ];
 	regcomp( &checkstringrx, NET_PATTERN, REG_EXTENDED );
 	if( regexec( &checkstringrx, netstring, 6, matches, 0 ) == 0 ) {
 		extractnetoctets  ( netstring, matches, netpointer   );
-		extractmaskoctets ( netstring, matches, netpointer+4 );
+		extractmaskoctets ( netstring, matches, netpointer + 4 );
 		return TRUE;
 	} else return FALSE;
 }
@@ -70,17 +69,17 @@ int maskexceptioncheck( unsigned char* netpointer ){
 	return TRUE;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-void listaddresses( ipv4net net ){
-	for( int octet1 = net.octet[0], counter = (unsigned char)(~net.maskoctet[0]); counter >= 0; octet1++, counter-- )
-		for( int octet2 = net.octet[1], counter = (unsigned char)(~net.maskoctet[1]); counter >= 0; octet2++, counter-- )
-			for( int octet3 = net.octet[2], counter = (unsigned char)(~net.maskoctet[2]); counter >= 0; octet3++, counter-- )
-				for( int octet4 = net.octet[3], counter = (unsigned char)(~net.maskoctet[3]); counter >= 0; octet4++, counter-- ){
-					printf( "%u.%u.%u.%u\n", octet1, octet2, octet3, octet4 );
+void listaddresses( unsigned char *net ){
+	for( int octet1 = *net, counter = (unsigned char)~*( net + 4 ); counter >= 0; octet1++, counter-- )
+		for( int octet2 = *( net + 1), counter = (unsigned char)~*( net + 5 ); counter >= 0; octet2++, counter-- )
+			for( int octet3 = *( net + 2 ), counter = (unsigned char)~*( net + 6 ); counter >= 0; octet3++, counter-- )
+				for( int octet4 = *( net + 3 ), counter = (unsigned char)~*( net + 7 ); counter >= 0; octet4++, counter-- ){
+					printf( "\x1b[37m%u.%u.%u.%u\x1b[0m\n", octet1, octet2, octet3, octet4 );
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void errexit( const int exitcode, const char *string ){
-	fprintf( stderr,"/!\\\t%-50.50s\t%16.16s\n", message[exitcode-1], string );
+	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s\t\x1b[31;1m%16.16s\x1b[0m\n", message[exitcode-1], string );
 	exit( exitcode );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
