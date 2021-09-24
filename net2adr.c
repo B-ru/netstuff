@@ -7,17 +7,11 @@
 #define FALSE	0
 #define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([0-9]{1,2})$"
 #define CODE1MESSAGE "Error! Check network address!\n"
-#define CODE2MESSAGE "Error! Illegal network address! Network address and Hosts range intersects!\n" 
+#define CODE2MESSAGE "Error! Illegal network address!\n" 
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
-	unsigned char octet1;
-	unsigned char octet2;
-	unsigned char octet3;
-	unsigned char octet4;
-	unsigned char maskoctet1;
-	unsigned char maskoctet2;
-	unsigned char maskoctet3;
-	unsigned char maskoctet4;
+	unsigned char octet[4];
+	unsigned char maskoctet[4];
 }ipv4net;
 //////////////////////////////////////////////////////////////////////////////////////////
 // prototypes										//
@@ -32,7 +26,7 @@ void	errexit			( const int exitcode, const char* message );
 //////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char* argv[] ){
 	ipv4net net;
-	unsigned char *netptr = &net.octet1;
+	unsigned char *netptr = &net.octet[0];
 	if( refinenetstring( argv[1], netptr ) ){
 		if( maskexceptioncheck( netptr ) ){
 			listaddresses( net );
@@ -73,10 +67,10 @@ int maskexceptioncheck( unsigned char* netpointer ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void listaddresses( ipv4net net ){
-	for( int octet1 = net.octet1, counter = (unsigned char)(~net.maskoctet1); counter >= 0; octet1++, counter-- )
-		for( int octet2 = net.octet2, counter = (unsigned char)(~net.maskoctet2); counter >= 0; octet2++, counter-- )
-			for( int octet3 = net.octet3, counter = (unsigned char)(~net.maskoctet3); counter >= 0; octet3++, counter-- )
-				for( int octet4 = net.octet4, counter = (unsigned char)(~net.maskoctet4); counter >= 0; octet4++, counter-- ){
+	for( int octet1 = net.octet[0], counter = (unsigned char)(~net.maskoctet[0]); counter >= 0; octet1++, counter-- )
+		for( int octet2 = net.octet[1], counter = (unsigned char)(~net.maskoctet[1]); counter >= 0; octet2++, counter-- )
+			for( int octet3 = net.octet[2], counter = (unsigned char)(~net.maskoctet[2]); counter >= 0; octet3++, counter-- )
+				for( int octet4 = net.octet[3], counter = (unsigned char)(~net.maskoctet[3]); counter >= 0; octet4++, counter-- ){
 					printf( "%u.%u.%u.%u\n", octet1, octet2, octet3, octet4 );
 	}
 }
