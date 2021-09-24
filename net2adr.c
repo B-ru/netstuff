@@ -56,7 +56,7 @@ void extractnetoctets( char *netstring, regmatch_t *matches, unsigned char *netp
 //////////////////////////////////////////////////////////////////////////////////////////
 void extractmaskoctets( char *netstring, regmatch_t *matches, unsigned char *maskpointer ){
 	for( int maskbitcounter = atoi( netstring + matches[5].rm_so ); maskbitcounter > 0; maskbitcounter -= 8, maskpointer++ ){
-		int currentoctet = pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8) ) - 1;
+		int currentoctet = pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1;
 		if( maskbitcounter < 8 ) currentoctet <<= ( 8 - maskbitcounter );
 		memmove( maskpointer, (char *)&currentoctet, 1 );
 	}
@@ -64,7 +64,7 @@ void extractmaskoctets( char *netstring, regmatch_t *matches, unsigned char *mas
 //////////////////////////////////////////////////////////////////////////////////////////
 int maskexceptioncheck( unsigned char* netpointer ){
 	for ( unsigned char *maskpointer = netpointer + 4, i = 0; i < 4; netpointer++, maskpointer++, i++ ) {
-		if( ( (*netpointer) & ( ~ ( *maskpointer ) ) ) != 0 ) return FALSE;
+		if( ( ( *netpointer ) & ( ~*maskpointer ) ) != 0 ) return FALSE;
 	}
 	return TRUE;
 }
@@ -79,7 +79,7 @@ void listaddresses( unsigned char *net ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void errexit( const int exitcode, const char *string ){
-	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s\t\x1b[31;1m%16.16s\x1b[0m\n", message[exitcode-1], string );
+	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s\t\x1b[31;1m%16.16s\x1b[0m\n", message[ exitcode - 1 ], string );
 	exit( exitcode );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
