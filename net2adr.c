@@ -49,13 +49,13 @@ int ValidateAndExtract( char *netstring, unsigned char *netpointer ){
 //////////////////////////////////////////////////////////////////////////////////////////
 void ExtractNetOctets( char *netstring, regmatch_t *matches, unsigned char *netpointer ){
 	for( int i = 1; i < 5; i++, netpointer++ ){
-		int buffer = atoi( netstring + matches[i].rm_so );
+		int buffer = atoi( netstring + matches[ i ].rm_so );
 		memmove( netpointer, (char *) &buffer, 1 );
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void ExtractMaskOctets( char *netstring, regmatch_t *matches, unsigned char *maskpointer ){
-	for( int maskbitcounter = atoi( netstring + matches[5].rm_so ); maskbitcounter > 0; maskbitcounter -= 8, maskpointer++ ){
+	for( int maskbitcounter = atoi( netstring + matches[ 5 ].rm_so ); maskbitcounter > 0; maskbitcounter -= 8, maskpointer++ ){
 		int currentoctet = pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1;
 		if( maskbitcounter < 8 ) currentoctet <<= ( 8 - maskbitcounter );
 		memmove( maskpointer, (char *)&currentoctet, 1 );
