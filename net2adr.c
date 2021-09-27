@@ -56,8 +56,7 @@ void ExtractNetOctets( char *netstring, regmatch_t *matches, unsigned char *netp
 //////////////////////////////////////////////////////////////////////////////////////////
 void ExtractMaskOctets( char *netstring, regmatch_t *matches, unsigned char *maskpointer ){
 	for( int maskbitcounter = atoi( netstring + matches[ 5 ].rm_so ); maskbitcounter > 0; maskbitcounter -= 8, maskpointer++ ){
-		int currentoctet = pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1;
-		if( maskbitcounter < 8 ) currentoctet <<= ( 8 - maskbitcounter );
+		int currentoctet = ( (int) ( pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1 ) << ( 8 - (maskbitcounter < 8 ? maskbitcounter: 8 ) ) );
 		memmove( maskpointer, (char *)&currentoctet, 1 );
 	}
 }
@@ -78,7 +77,7 @@ void ListAddresses( unsigned char *net ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void QuitWithError( const int exitcode, const char *string ){
-	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s  \x1b[31;1m%20.20s\x1b[0m\n", message[ exitcode - 1 ], string );
+	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s \x1b[31;1m%20.20s\x1b[0m\n", message[ exitcode - 1 ], string );
 	exit( exitcode );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
