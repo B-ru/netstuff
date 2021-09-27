@@ -63,9 +63,8 @@ void ExtractMaskOctets( char *netstring, regmatch_t *matches, unsigned char *mas
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 int CheckMaskException( unsigned char* netpointer ){
-	for ( unsigned char *maskpointer = netpointer + 4, i = 0; i < 4; netpointer++, maskpointer++, i++ ) {
-		if( ( ( *netpointer ) & ( ~*maskpointer ) ) != 0 ) return FALSE;
-	}
+	for ( unsigned char *maskpointer = netpointer + 4, i = 0; i < 4; netpointer++, maskpointer++, i++ )
+		if( ( ( *netpointer ) & ( ~*maskpointer ) ) != 0 ) return FALSE;	
 	return TRUE;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
