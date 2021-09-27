@@ -5,7 +5,7 @@
 #include <regex.h>
 #define TRUE	1
 #define FALSE	0
-#define NET_PATTERN "^([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([1-9]{1}|([1-2][0-9])|([3][0-2]))$"
+#define NET_PATTERN "([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([1-9]{1}|([1-2][0-9])|([3][0-2]))"
 //////////////////////////////////////////////////////////////////////////////////////////
 typedef struct {
 	unsigned char octet[ 4 ];
@@ -79,7 +79,7 @@ void ListAddresses( unsigned char *net ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void QuitWithError( const int exitcode, const char *string ){
-	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s\t\x1b[31;1m%16.16s\x1b[0m\n", message[ exitcode - 1 ], string );
+	fprintf( stderr, "\x1b[31;1m/!\\\x1b[0m\t%-50.50s  \x1b[31;1m%20.20s\x1b[0m\n", message[ exitcode - 1 ], string );
 	exit( exitcode );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
