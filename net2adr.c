@@ -48,18 +48,18 @@ int ValidateAndExtract( char *netstring, unsigned char *netpointer ){
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void ExtractNetOctets( char *netstring, regmatch_t *matches, unsigned char *netpointer ){
-	for( int i = 1, buffer = atoi( netstring + matches[ i ].rm_so ); i < 5; buffer = atoi (netstring + matches[ ++i ].rm_so ) )
-		memmove( netpointer++, (char *) &buffer, 1 );	
+	for( int i = 1, octet = atoi( netstring + matches[ i ].rm_so ); i < 5; octet = atoi (netstring + matches[ ++i ].rm_so ) )
+		memmove( netpointer++, (char *) &octet, 1 );	
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void ExtractMaskOctets( char *netstring, regmatch_t *matches, unsigned char *maskpointer ){
-	for( int maskbitcounter = atoi( netstring + matches[ 5 ].rm_so ), currentoctet = (int) ( pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1 ) << ( 8 - (maskbitcounter < 8 ? maskbitcounter: 8 ) ); maskbitcounter > 0; maskbitcounter -= 8, currentoctet = (int) ( pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1 ) << ( 8 - (maskbitcounter < 8 ? maskbitcounter: 8 ) ) )
-		memmove( maskpointer++, (char *)&currentoctet, 1 );
+	for( int maskbitcounter = atoi( netstring + matches[ 5 ].rm_so ), octet = (int) ( pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1 ) << ( 8 - (maskbitcounter < 8 ? maskbitcounter: 8 ) ); maskbitcounter > 0; maskbitcounter -= 8, octet = (int) ( pow ( 2, (maskbitcounter < 8 ? maskbitcounter : 8 ) ) - 1 ) << ( 8 - (maskbitcounter < 8 ? maskbitcounter: 8 ) ) )
+		memmove( maskpointer++, (char *) &octet, 1 );
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 int CheckMaskException( unsigned char* netpointer ){
-	for ( unsigned char *maskpointer = netpointer + 4, i = 0; i < 4; netpointer++, maskpointer++, i++ )
-		if( ( ( *netpointer ) & ( ~*maskpointer ) ) != 0 ) return FALSE;	
+	for ( unsigned char *maskpointer = netpointer + 4, i = 0; i < 4; i++ )
+		if( ( ( *netpointer++ ) & ( ~*maskpointer++ ) ) != 0 ) return FALSE;	
 	return TRUE;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
