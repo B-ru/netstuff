@@ -1,8 +1,8 @@
-#include <stdio.h>	// printf, fprintf, stderr
-#include <stdlib.h>	// atoi
-#include <math.h>	// pow
-#include <string.h>	// memmove
-#include <regex.h>	// regexec, regcomp, regex_t, regmatch_t
+#include <stdio.h>	// printf(), fprintf(), stderr
+#include <stdlib.h>	// atoi()
+#include <math.h>	// pow()
+#include <string.h>	// memmove()
+#include <regex.h>	// regexec(), regcomp(), regex_t, regmatch_t
 #define TRUE	1
 #define FALSE	0
 #define NET_PATTERN "([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})/([1-9]{1}|([1-2][0-9])|([3][0-2]))"
