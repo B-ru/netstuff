@@ -59,7 +59,7 @@ void ExtractMaskOctets( char *netstring, regmatch_t *matches, unsigned char *mas
 //////////////////////////////////////////////////////////////////////////////////////////
 int CheckMaskException( unsigned char* netpointer ){
 	for ( unsigned char *maskpointer = netpointer + 4, i = 0; i < 4; i++ )
-		if( ( ( *netpointer++ ) & ( ~*maskpointer++ ) ) != 0 ) return FALSE;	
+		if( (  *netpointer++ & ~*maskpointer++ ) != 0 ) return FALSE;	
 	return TRUE;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -67,9 +67,8 @@ void ListAddresses( unsigned char *net ){
 	for( int octet1 = *net, counter = (unsigned char) ~* ( net + 4 ); counter >= 0; octet1++, counter-- )
 		for( int octet2 = *( net + 1), counter = (unsigned char) ~* ( net + 5 ); counter >= 0; octet2++, counter-- )
 			for( int octet3 = *( net + 2 ), counter = (unsigned char) ~* ( net + 6 ); counter >= 0; octet3++, counter-- )
-				for( int octet4 = *( net + 3 ), counter = (unsigned char) ~* ( net + 7 ); counter >= 0; octet4++, counter-- ){
+				for( int octet4 = *( net + 3 ), counter = (unsigned char) ~* ( net + 7 ); counter >= 0; octet4++, counter-- )
 					printf( "%u.%u.%u.%u\n", octet1, octet2, octet3, octet4 );
-	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void QuitWithError( const int exitcode, const char *string ){
